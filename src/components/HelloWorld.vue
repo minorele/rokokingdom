@@ -41,24 +41,24 @@ const types = [
 ]
 
 const matchup = {
-  normal: { strong: [], weak: ['earth', 'mech', 'ghost'] },
-  grass: { strong: ['water', 'earth'], weak: ['fire', 'ice', 'bug', 'wing'] },
+  normal: { strong: [], weak: ['light', 'mech', 'ghost'] },
+  grass: { strong: ['water', 'earth', 'light'], weak: ['fire', 'dragon', 'poison', 'bug', 'wing', 'mech'] },
   fire: { strong: ['grass', 'ice', 'bug', 'mech'], weak: ['water', 'earth', 'dragon'] },
-  water: { strong: ['fire', 'earth'], weak: ['grass', 'electric'] },
+  water: { strong: ['fire', 'earth', 'mech'], weak: ['grass', 'ice'] },
   light: { strong: ['ghost', 'evil'], weak: ['dragon', 'earth'] },
-  earth: { strong: ['fire', 'electric', 'mech'], weak: ['grass', 'water', 'ice', 'wing'] },
-  ice: { strong: ['grass', 'dragon', 'wing'], weak: ['fire', 'martial', 'mech'] },
-  dragon: { strong: ['light', 'electric', 'fire'], weak: ['ice', 'cute'] },
-  electric: { strong: ['water', 'wing'], weak: ['earth', 'dragon'] },
-  poison: { strong: ['grass', 'cute'], weak: ['earth', 'ghost', 'mech'] },
-  bug: { strong: ['grass', 'evil', 'light'], weak: ['fire', 'wing', 'martial'] },
-  martial: { strong: ['normal', 'ice', 'evil', 'mech'], weak: ['light', 'ghost', 'cute'] },
-  wing: { strong: ['grass', 'bug', 'martial'], weak: ['electric', 'ice'] },
-  cute: { strong: ['dragon', 'martial', 'evil'], weak: ['poison', 'mech'] },
-  ghost: { strong: ['ghost', 'poison'], weak: ['normal', 'light', 'evil']},
-  evil: { strong: ['light', 'ghost'], weak: ['martial', 'cute', 'bug'] },
-  mech: { strong: ['ice', 'cute', 'phantom'], weak: ['fire', 'earth', 'martial'] },
-  phantom: { strong: ['light', 'dragon'], weak: ['mech', 'evil'] },
+  earth: { strong: ['fire', 'ice', 'electric', 'poison'], weak: ['grass', 'martial'] },
+  ice: { strong: ['grass', 'earth', 'dragon', 'wing'], weak: ['fire', 'ice', 'mech'] },
+  dragon: { strong: ['dragon'], weak: ['mech'] },
+  electric: { strong: ['water', 'wing'], weak: ['grass', 'earth', 'dragon', 'electric'] },
+  poison: { strong: ['grass', 'cute'], weak: ['earth', 'poison', 'ghost', 'mech'] },
+  bug: { strong: ['grass', 'evil', 'phantom'], weak: ['fire', 'poison', 'wing', 'martial', 'cute', 'ghost', 'mech'] },
+  martial: { strong: ['normal', 'earth', 'ice', 'evil', 'mech'], weak: ['poison', 'bug', 'wing', 'cute', 'ghost', 'phantom'] },
+  wing: { strong: ['grass', 'bug', 'martial'], weak: ['earth','dragon','electric','mech'] },
+  cute: { strong: ['dragon', 'martial', 'evil'], weak: ['fire','poison', 'mech'] },
+  ghost: { strong: ['light', 'ghost', 'poison'], weak: ['normal','evil']},
+  evil: { strong: ['poison', 'cute','ghost'], weak: ['earth','martial', 'evil'] },
+  mech: { strong: ['ice', 'earth', 'dragon'], weak: ['water', 'fire', 'mech','electric'] },
+  phantom: { strong: ['poison', 'martial'], weak: ['light','mech', 'phantom'] },
 }
 
 const selectedDefenders = ref([])
@@ -117,6 +117,9 @@ const getStateByMultiplier = (value) => {
 }
 
 const formatMultiplier = (value) => {
+  if (value === 4) return '3x'
+  if (value === 1) return ''
+  if (value === 0.25) return '0.33x'
   if (Number.isInteger(value)) return `${value}x`
   return `${value}x`
 }
@@ -133,7 +136,7 @@ const matrix = computed(() => {
       dualCell: {
         value: dualValue,
         state: dualValue === null ? 'normal' : getStateByMultiplier(dualValue),
-        label: dualValue === null ? '-' : formatMultiplier(dualValue),
+        label: dualValue === null ? '' : formatMultiplier(dualValue),
       },
       cells: types.map((defender) => {
         const value = getEffectValue(attacker.key, defender.key)
@@ -163,9 +166,10 @@ const matrix = computed(() => {
         <table class="matrix-table">
           <thead>
             <tr>
-              <th class="corner">攻击方</th>
+              <th class="corner">列:攻击方</th>
               <th class="dual-head">
                 <div class="dual-title">
+                  <small class="dual-count">{{ selectedDefenders.length }}/2</small>
                   <span class="dual-icons">
                     <template v-for="(type, index) in selectedDefenderTypes" :key="`picked-${index}`">
                       <img
@@ -177,7 +181,6 @@ const matrix = computed(() => {
                       <i v-else class="dual-empty-dot" aria-hidden="true"></i>
                     </template>
                   </span>
-                  <small>{{ selectedDefenders.length }}/2</small>
                 </div>
               </th>
               <th v-for="type in types" :key="`head-${type.key}`">
@@ -218,7 +221,7 @@ const matrix = computed(() => {
                 </button>
               </th>
               <td class="dual-col">
-                <span class="result" :class="row.dualCell.state">
+                <span v-if="row.dualCell.label" class="result" :class="row.dualCell.state">
                   {{ row.dualCell.label }}
                 </span>
               </td>
@@ -316,14 +319,14 @@ h1 {
 .matrix-table {
   width: max-content;
   border-collapse: separate;
-  border-spacing: 8px 5px;
-  padding: 8px 12px;
+  border-spacing: 6px 4px;
+  padding: 4px 8px;
 }
 
 th,
 td {
-  width: 52px;
-  height: 33px;
+  width: 46px;
+  height: 30px;
   background: #f2eee4;
   border: 1px solid #cdc5b6;
   border-radius: 11px;
@@ -342,23 +345,25 @@ thead th:not(.corner):not(.dual-head) {
 }
 
 .corner {
-  width: 92px;
-  min-width: 92px;
+  width: 84px;
+  min-width: 84px;
   font-size: 0.94rem;
   color: #4f4b45;
   background: #e7e0d2;
 }
 
 .dual-head {
-  width: 96px;
-  min-width: 96px;
+  width: 88px;
+  min-width: 88px;
   background: #e9e3d6;
 }
 
 .dual-title {
-  display: grid;
-  gap: 2px;
+  display: inline-flex;
   place-items: center;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   font-size: 0.76rem;
   color: #4a443c;
 }
@@ -367,26 +372,27 @@ thead th:not(.corner):not(.dual-head) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 7px;
 }
 
 .dual-picked-icon {
-  width: 15px;
-  height: 15px;
+  width: 22px;
+  height: 22px;
   object-fit: cover;
   border-radius: 2px;
 }
 
 .dual-empty-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #b6ae9e;
   display: inline-block;
 }
 
-.dual-title small {
-  font-size: 0.68rem;
+.dual-count {
+  font-size: 0.76rem;
+  font-weight: 700;
   color: #6d665a;
 }
 
@@ -404,7 +410,7 @@ thead th:not(.corner):not(.dual-head) {
 
 .type-pill-btn.selected {
   background: #2f2f34;
-  box-shadow: inset 0 0 0 2px #2f2f34;
+  box-shadow: inset 3px 0 0 var(--defense-color);
 }
 
 .type-pill-btn:hover {
@@ -416,7 +422,7 @@ thead th:not(.corner):not(.dual-head) {
   display: inline-grid;
   place-items: center;
   gap: 1px;
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   font-weight: 700;
   line-height: 1.2;
   color: var(--defense-color);
@@ -427,23 +433,23 @@ thead th:not(.corner):not(.dual-head) {
 }
 
 .type-icon-img {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   object-fit: cover;
   border-radius: 2px;
 }
 
 .row-head {
-  width: 92px;
-  min-width: 92px;
+  width: 84px;
+  min-width: 84px;
   background: transparent;
   border-color: transparent;
   padding: 0;
 }
 
 .dual-col {
-  width: 96px;
-  min-width: 96px;
+  width: 88px;
+  min-width: 88px;
 }
 
 .attack-btn {
@@ -456,8 +462,8 @@ thead th:not(.corner):not(.dual-head) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.34rem;
-  font-size: 0.92rem;
+  gap: 0.28rem;
+  font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
   box-shadow: inset 3px 0 0 var(--attack-color);
@@ -476,8 +482,8 @@ thead th:not(.corner):not(.dual-head) {
 }
 
 .attack-icon-img {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   object-fit: cover;
   border-radius: 2px;
 }
@@ -514,8 +520,8 @@ tbody tr.recommended .attack-btn {
 }
 
 .result {
-  width: 27px;
-  height: 21px;
+  width: 24px;
+  height: 19px;
   border-radius: 8px;
   border: 1px solid rgba(55, 48, 40, 0.22);
   display: inline-grid;
@@ -526,8 +532,8 @@ tbody tr.recommended .attack-btn {
 }
 
 .dual-col .result {
-  width: 58px;
-  height: 21px;
+  width: 50px;
+  height: 19px;
   font-size: 0.84rem;
 }
 
@@ -562,51 +568,51 @@ tbody tr.recommended .attack-btn {
   }
 
   .matrix-table {
-    border-spacing: 6px 4px;
-    padding: 4px 6px;
+    border-spacing: 4px 3px;
+    padding: 2px 4px;
   }
 
   th,
   td {
-    width: 46px;
-    height: 29px;
+    width: 42px;
+    height: 26px;
   }
 
   .corner,
   .row-head {
-    width: 82px;
-    min-width: 82px;
+    width: 76px;
+    min-width: 76px;
   }
 
   .dual-head,
   .dual-col {
-    width: 80px;
-    min-width: 80px;
+    width: 74px;
+    min-width: 74px;
   }
 
   .dual-col .result {
-    width: 50px;
-    height: 20px;
+    width: 44px;
+    height: 18px;
     font-size: 0.76rem;
   }
 
   .dual-picked-icon {
-    width: 13px;
-    height: 13px;
+    width: 18px;
+    height: 18px;
   }
 
   .attack-btn {
-    font-size: 0.82rem;
+    font-size: 0.76rem;
   }
 
   .type-pill {
-    font-size: 0.82rem;
+    font-size: 0.76rem;
   }
 
   .type-icon-img,
   .attack-icon-img {
-    width: 14px;
-    height: 14px;
+    width: 17px;
+    height: 17px;
   }
 }
 </style>
