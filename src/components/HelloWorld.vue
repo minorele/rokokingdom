@@ -44,8 +44,31 @@ const matchup = {
 }
 
 const activeAttack = ref(types[0].key)
-const selectedDefenderA = ref(types[0].key)
-const selectedDefenderB = ref(types[1].key)
+const selectedDefenders = ref([])
+
+const selectedDefenderA = computed(() => selectedDefenders.value[0] ?? null)
+const selectedDefenderB = computed(() => selectedDefenders.value[1] ?? null)
+
+const toggleDefender = (typeKey) => {
+  const current = selectedDefenders.value
+  const existingIndex = current.indexOf(typeKey)
+
+  if (existingIndex !== -1) {
+    selectedDefenders.value = current.filter((key) => key !== typeKey)
+    return
+  }
+
+  if (current.length < 2) {
+    selectedDefenders.value = [...current, typeKey]
+    return
+  }
+
+  selectedDefenders.value = [current[1], typeKey]
+}
+
+const resetSelectedDefenders = () => {
+  selectedDefenders.value = []
+}
 
 const getEffectValue = (attackerKey, defenderKey) => {
   const info = matchup[attackerKey] ?? {}
@@ -72,16 +95,17 @@ const formatMultiplier = (value) => {
 
 const matrix = computed(() => {
   return types.map((attacker) => {
-    const first = getEffectValue(attacker.key, selectedDefenderA.value)
-    const second = getEffectValue(attacker.key, selectedDefenderB.value)
-    const dualValue = first * second
+    const hasDualSelection = selectedDefenders.value.length === 2
+    const dualValue = hasDualSelection
+      ? getEffectValue(attacker.key, selectedDefenderA.value) * getEffectValue(attacker.key, selectedDefenderB.value)
+      : null
 
     return {
       attacker,
       dualCell: {
         value: dualValue,
-        state: getStateByMultiplier(dualValue),
-        label: formatMultiplier(dualValue),
+        state: dualValue === null ? 'normal' : getStateByMultiplier(dualValue),
+        label: dualValue === null ? '-' : formatMultiplier(dualValue),
       },
       cells: types.map((defender) => {
         const value = getEffectValue(attacker.key, defender.key)
@@ -96,6 +120,14 @@ const matrix = computed(() => {
   <section class="chart-page">
     <header class="title-wrap">
       <h1>洛克王国世界属性克制表</h1>
+      <button
+        type="button"
+        class="reset-btn"
+        :disabled="selectedDefenders.length === 0"
+        @click="resetSelectedDefenders"
+      >
+        重置
+      </button>
     </header>
 
     <div class="matrix-shell">
@@ -105,24 +137,23 @@ const matrix = computed(() => {
             <tr>
               <th class="corner">作为攻击方</th>
               <th class="dual-head">
-                <div class="dual-picker">
-                  <select v-model="selectedDefenderA" aria-label="第一个被攻击属性">
-                    <option v-for="type in types" :key="`def-a-${type.key}`" :value="type.key">
-                      {{ type.name }}
-                    </option>
-                  </select>
-                  <select v-model="selectedDefenderB" aria-label="第二个被攻击属性">
-                    <option v-for="type in types" :key="`def-b-${type.key}`" :value="type.key">
-                      {{ type.name }}
-                    </option>
-                  </select>
+                <div class="dual-title">
+                  <span>双属性</span>
+                  <small>{{ selectedDefenders.length }}/2</small>
                 </div>
               </th>
               <th v-for="type in types" :key="`head-${type.key}`">
+                <button
+                  type="button"
+                  class="type-pill-btn"
+                  :class="{ selected: selectedDefenders.includes(type.key) }"
+                  @click="toggleDefender(type.key)"
+                >
                 <span class="type-pill" :style="{ '--pill-color': type.color }">
                   <i>{{ type.icon }}</i>
                   {{ type.name }}
                 </span>
+                </button>
               </th>
             </tr>
           </thead>
@@ -186,6 +217,29 @@ const matrix = computed(() => {
   margin-bottom: 0.28rem;
 }
 
+.reset-btn {
+  margin-top: 0.28rem;
+  height: 28px;
+  min-width: 72px;
+  border: 0;
+  border-radius: 8px;
+  background: #2f2f34;
+  color: #f6f3ea;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.reset-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.reset-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 h1 {
   margin: 0;
   font-size: clamp(0.95rem, 2vw, 1.3rem);
@@ -240,20 +294,31 @@ thead th {
   background: #e2ddcf;
 }
 
-.dual-picker {
+.dual-title {
   display: grid;
-  gap: 2px;
-  padding: 1px;
+  gap: 1px;
+  place-items: center;
+  font-size: 0.64rem;
+  color: #4a443c;
 }
 
-.dual-picker select {
+.dual-title small {
+  font-size: 0.56rem;
+  color: #6d665a;
+}
+
+.type-pill-btn {
   width: 100%;
-  height: 16px;
+  height: 100%;
   border: 0;
-  border-radius: 5px;
-  font-size: 0.6rem;
-  background: #faf7ef;
-  color: #4a443c;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.type-pill-btn.selected {
+  background: #f0eadf;
+  box-shadow: inset 0 0 0 2px #2f2f34;
 }
 
 .type-pill {
@@ -383,10 +448,6 @@ tbody tr.active td {
   .dual-col .result {
     width: 46px;
     font-size: 0.66rem;
-  }
-
-  .dual-picker select {
-    font-size: 0.56rem;
   }
 
   .attack-btn {
