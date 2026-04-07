@@ -1,25 +1,43 @@
 <script setup>
 import { computed, ref } from 'vue'
+import lightIcon from '../assets/aspect/光.png'
+import iceIcon from '../assets/aspect/冰.png'
+import earthIcon from '../assets/aspect/地.png'
+import phantomIcon from '../assets/aspect/幻.png'
+import ghostIcon from '../assets/aspect/幽.png'
+import evilIcon from '../assets/aspect/恶.png'
+import normalIcon from '../assets/aspect/普.png'
+import mechIcon from '../assets/aspect/机.png'
+import martialIcon from '../assets/aspect/武.png'
+import poisonIcon from '../assets/aspect/毒.png'
+import waterIcon from '../assets/aspect/水.png'
+import fireIcon from '../assets/aspect/火.png'
+import electricIcon from '../assets/aspect/电.png'
+import wingIcon from '../assets/aspect/翼.png'
+import grassIcon from '../assets/aspect/草.png'
+import cuteIcon from '../assets/aspect/萌.png'
+import bugIcon from '../assets/aspect/虫.png'
+import dragonIcon from '../assets/aspect/龙.png'
 
 const types = [
-  { key: 'normal', name: '普通系', icon: '◎', color: '#7d8ca0' },
-  { key: 'grass', name: '草系', icon: '❀', color: '#3ba668' },
-  { key: 'fire', name: '火系', icon: '♨', color: '#df6f3d' },
-  { key: 'water', name: '水系', icon: '◈', color: '#4a8cd9' },
-  { key: 'light', name: '光系', icon: '✧', color: '#4db4d5' },
-  { key: 'earth', name: '土系', icon: '▲', color: '#9a7c4d' },
-  { key: 'ice', name: '冰系', icon: '❄', color: '#66a9ba' },
-  { key: 'dragon', name: '龙系', icon: '✦', color: '#cb5663' },
-  { key: 'electric', name: '电系', icon: '⚡', color: '#d4b036' },
-  { key: 'poison', name: '毒系', icon: '☣', color: '#9b64d9' },
-  { key: 'bug', name: '虫系', icon: '✿', color: '#8bb348' },
-  { key: 'martial', name: '武系', icon: '✹', color: '#d09a4f' },
-  { key: 'wing', name: '翼系', icon: '➹', color: '#3fa0b8' },
-  { key: 'cute', name: '萌系', icon: '♡', color: '#d85f9f' },
-  { key: 'ghost', name: '幽系', icon: '☯', color: '#7559b9' },
-  { key: 'evil', name: '恶系', icon: '◍', color: '#b15575' },
-  { key: 'mech', name: '机械系', icon: '⚙', color: '#5ca2a1' },
-  { key: 'phantom', name: '幻系', icon: '◌', color: '#6a8bc9' },
+  { key: 'normal', name: '普系', iconSrc: normalIcon, color: '#478bb6' },
+  { key: 'grass', name: '草系', iconSrc: grassIcon, color: '#58b978' },
+  { key: 'fire', name: '火系', iconSrc: fireIcon, color: '#df5529' },
+  { key: 'water', name: '水系', iconSrc: waterIcon, color: '#6699e0' },
+  { key: 'light', name: '光系', iconSrc: lightIcon, color: '#53ade0' },
+  { key: 'earth', name: '地系', iconSrc: earthIcon, color: '#9e8342' },
+  { key: 'ice', name: '冰系', iconSrc: iceIcon, color: '#63a9d2' },
+  { key: 'dragon', name: '龙系', iconSrc: dragonIcon, color: '#ec4b67' },
+  { key: 'electric', name: '电系', iconSrc: electricIcon, color: '#e5c400' },
+  { key: 'poison', name: '毒系', iconSrc: poisonIcon, color: '#ab5ad0' },
+  { key: 'bug', name: '虫系', iconSrc: bugIcon, color: '#9ecf1f' },
+  { key: 'martial', name: '武系', iconSrc: martialIcon, color: '#fa973b' },
+  { key: 'wing', name: '翼系', iconSrc: wingIcon, color: '#4abdc0' },
+  { key: 'cute', name: '萌系', iconSrc: cuteIcon, color: '#e976aa' },
+  { key: 'ghost', name: '幽系', iconSrc: ghostIcon, color: '#8e4bdf' },
+  { key: 'evil', name: '恶系', iconSrc: evilIcon, color: '#cc4b84' },
+  { key: 'mech', name: '机系', iconSrc: mechIcon, color: '#4ec8aa' },
+  { key: 'phantom', name: '幻系', iconSrc: phantomIcon, color: '#969ce7' },
 ]
 
 const matchup = {
@@ -43,11 +61,21 @@ const matchup = {
   phantom: { strong: ['light', 'dragon'], weak: ['mech', 'evil'] },
 }
 
-const activeAttack = ref(types[0].key)
 const selectedDefenders = ref([])
 
 const selectedDefenderA = computed(() => selectedDefenders.value[0] ?? null)
 const selectedDefenderB = computed(() => selectedDefenders.value[1] ?? null)
+const selectedDefenderTypes = computed(() => {
+  const selected = selectedDefenders.value
+    .map((key) => types.find((type) => type.key === key))
+    .filter(Boolean)
+
+  while (selected.length < 2) {
+    selected.push(null)
+  }
+
+  return selected
+})
 
 const toggleDefender = (typeKey) => {
   const current = selectedDefenders.value
@@ -131,14 +159,24 @@ const matrix = computed(() => {
     </header>
 
     <div class="matrix-shell">
-      <div class="matrix-scroll">
+      <div class="matrix-canvas">
         <table class="matrix-table">
           <thead>
             <tr>
-              <th class="corner">作为攻击方</th>
+              <th class="corner">攻击方</th>
               <th class="dual-head">
                 <div class="dual-title">
-                  <span>双属性</span>
+                  <span class="dual-icons">
+                    <template v-for="(type, index) in selectedDefenderTypes" :key="`picked-${index}`">
+                      <img
+                        v-if="type"
+                        class="dual-picked-icon"
+                        :src="type.iconSrc"
+                        :alt="type.name"
+                      />
+                      <i v-else class="dual-empty-dot" aria-hidden="true"></i>
+                    </template>
+                  </span>
                   <small>{{ selectedDefenders.length }}/2</small>
                 </div>
               </th>
@@ -147,10 +185,11 @@ const matrix = computed(() => {
                   type="button"
                   class="type-pill-btn"
                   :class="{ selected: selectedDefenders.includes(type.key) }"
+                  :style="{ '--defense-color': type.color }"
                   @click="toggleDefender(type.key)"
                 >
-                <span class="type-pill" :style="{ '--pill-color': type.color }">
-                  <i>{{ type.icon }}</i>
+                <span class="type-pill">
+                  <img class="type-icon-img" :src="type.iconSrc" :alt="type.name" />
                   {{ type.name }}
                 </span>
                 </button>
@@ -161,17 +200,21 @@ const matrix = computed(() => {
             <tr
               v-for="row in matrix"
               :key="row.attacker.key"
-              :class="{ active: activeAttack === row.attacker.key }"
+              :class="{
+                recommended:
+                  selectedDefenders.length === 2 && selectedDefenders.includes(row.attacker.key),
+              }"
             >
               <th class="row-head">
                 <button
                   type="button"
                   class="attack-btn"
-                  :class="{ picked: activeAttack === row.attacker.key }"
-                  @click="activeAttack = row.attacker.key"
+                  :style="{ '--attack-color': row.attacker.color }"
                 >
-                  <span class="icon">{{ row.attacker.icon }}</span>
-                  <span>{{ row.attacker.name }}</span>
+                  <span class="icon">
+                    <img class="attack-icon-img" :src="row.attacker.iconSrc" :alt="row.attacker.name" />
+                  </span>
+                  <span class="label">{{ row.attacker.name }}</span>
                 </button>
               </th>
               <td class="dual-col">
@@ -203,13 +246,16 @@ const matrix = computed(() => {
 
 <style scoped>
 .chart-page {
-  min-height: 100vh;
-  padding: 0.55rem 0.95rem 0.55rem;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0.45rem 0.6rem 0.45rem;
   background:
     radial-gradient(circle at 12% 20%, rgba(242, 198, 114, 0.22), transparent 26%),
     radial-gradient(circle at 88% 78%, rgba(79, 156, 170, 0.25), transparent 32%),
     #ece7db;
   color: #3f3a34;
+  overflow: hidden;
 }
 
 .title-wrap {
@@ -247,129 +293,197 @@ h1 {
 }
 
 .matrix-shell {
-  max-width: 1180px;
-  margin: 0 auto;
-  border: 3px solid #343238;
-  border-radius: 14px;
-  background: #f4f0e6;
-  box-shadow: 0 14px 34px rgba(44, 37, 28, 0.18);
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+  overflow: auto;
 }
 
-.matrix-scroll {
-  overflow: auto;
-  border-radius: 12px;
+.matrix-canvas {
+  width: max-content;
+  min-width: max-content;
+  margin: 0 auto;
 }
 
 .matrix-table {
   width: max-content;
   border-collapse: separate;
-  border-spacing: 6px 3px;
-  padding: 5px 9px;
+  border-spacing: 8px 5px;
+  padding: 8px 12px;
 }
 
 th,
 td {
-  width: 48px;
-  height: 34px;
-  background: #e8e3d7;
-  border-radius: 10px;
+  width: 52px;
+  height: 33px;
+  background: #f2eee4;
+  border: 1px solid #cdc5b6;
+  border-radius: 11px;
   text-align: center;
+  overflow: hidden;
 }
 
 thead th {
-  height: 39px;
+  height: 44px;
+}
+
+thead th:not(.corner):not(.dual-head) {
+  border-color: transparent;
+  background: transparent;
+  padding: 0;
 }
 
 .corner {
-  width: 132px;
-  min-width: 132px;
-  font-size: 0.8rem;
+  width: 92px;
+  min-width: 92px;
+  font-size: 0.94rem;
   color: #4f4b45;
-  background: #ded8ca;
+  background: #e7e0d2;
 }
 
 .dual-head {
-  width: 86px;
-  min-width: 86px;
-  background: #e2ddcf;
+  width: 96px;
+  min-width: 96px;
+  background: #e9e3d6;
 }
 
 .dual-title {
   display: grid;
-  gap: 1px;
+  gap: 2px;
   place-items: center;
-  font-size: 0.64rem;
+  font-size: 0.76rem;
   color: #4a443c;
 }
 
+.dual-icons {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.dual-picked-icon {
+  width: 15px;
+  height: 15px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.dual-empty-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #b6ae9e;
+  display: inline-block;
+}
+
 .dual-title small {
-  font-size: 0.56rem;
+  font-size: 0.68rem;
   color: #6d665a;
 }
 
 .type-pill-btn {
   width: 100%;
   height: 100%;
-  border: 0;
+  border: 1px solid #d4cbbb;
   border-radius: 10px;
-  background: transparent;
+  background: #f7f3ea;
+  color: var(--defense-color);
   cursor: pointer;
+  box-shadow: inset 3px 0 0 var(--defense-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s, color 0.2s ease;
 }
 
 .type-pill-btn.selected {
-  background: #f0eadf;
+  background: #2f2f34;
   box-shadow: inset 0 0 0 2px #2f2f34;
+}
+
+.type-pill-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 3px 0 0 var(--defense-color), 0 6px 16px rgba(70, 60, 46, 0.18);
 }
 
 .type-pill {
   display: inline-grid;
   place-items: center;
   gap: 1px;
-  font-size: 0.64rem;
+  font-size: 0.92rem;
+  font-weight: 700;
   line-height: 1.2;
-  color: var(--pill-color);
+  color: var(--defense-color);
 }
 
-.type-pill i {
-  font-style: normal;
-  font-size: 0.9rem;
+.type-pill-btn.selected .type-pill {
+  color: #f6f3ea;
+}
+
+.type-icon-img {
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 2px;
 }
 
 .row-head {
-  width: 132px;
-  min-width: 132px;
+  width: 92px;
+  min-width: 92px;
   background: transparent;
+  border-color: transparent;
+  padding: 0;
 }
 
 .dual-col {
-  width: 86px;
-  min-width: 86px;
+  width: 96px;
+  min-width: 96px;
 }
 
 .attack-btn {
   width: 100%;
   height: 100%;
-  border: 0;
+  border: 1px solid #c9bfad;
   border-radius: 10px;
-  background: #f5f2ea;
-  color: #4f4841;
+  background: #f8f4eb;
+  color: var(--attack-color);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.28rem;
-  font-size: 0.76rem;
+  gap: 0.34rem;
+  font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s;
+  box-shadow: inset 3px 0 0 var(--attack-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s, color 0.2s ease;
 }
 
 .attack-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(70, 60, 46, 0.18);
+  box-shadow: inset 3px 0 0 var(--attack-color), 0 6px 16px rgba(70, 60, 46, 0.18);
 }
 
 .attack-btn .icon {
-  font-size: 0.88rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attack-icon-img {
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.attack-btn .label {
+  color: var(--attack-color);
 }
 
 .attack-btn.picked {
@@ -377,24 +491,44 @@ thead th {
   color: #f6f3ea;
 }
 
+.attack-btn.picked .label {
+  color: #f6f3ea;
+}
+
 tbody tr.active td {
-  background: #f0eadf;
+  background: #ebe4d5;
+}
+
+tbody tr.recommended td {
+  background: #d5efc8;
+  border-color: #9fca87;
+}
+
+tbody tr.recommended .dual-col {
+  background: #c3e8af;
+  border-color: #88bb6d;
+}
+
+tbody tr.recommended .attack-btn {
+  box-shadow: inset 5px 0 0 #74b55a;
 }
 
 .result {
-  width: 25px;
-  height: 22px;
+  width: 27px;
+  height: 21px;
   border-radius: 8px;
+  border: 1px solid rgba(55, 48, 40, 0.22);
   display: inline-grid;
   place-items: center;
-  font-size: 0.82rem;
+  font-size: 0.96rem;
   font-weight: 800;
   color: #fff;
 }
 
 .dual-col .result {
-  width: 54px;
-  font-size: 0.72rem;
+  width: 58px;
+  height: 21px;
+  font-size: 0.84rem;
 }
 
 .result.normal {
@@ -427,31 +561,52 @@ tbody tr.active td {
     padding: 0.6rem 0.45rem 0.55rem;
   }
 
+  .matrix-table {
+    border-spacing: 6px 4px;
+    padding: 4px 6px;
+  }
+
   th,
   td {
-    width: 44px;
-    height: 30px;
+    width: 46px;
+    height: 29px;
   }
 
   .corner,
   .row-head {
-    width: 110px;
-    min-width: 110px;
+    width: 82px;
+    min-width: 82px;
   }
 
   .dual-head,
   .dual-col {
-    width: 74px;
-    min-width: 74px;
+    width: 80px;
+    min-width: 80px;
   }
 
   .dual-col .result {
-    width: 46px;
-    font-size: 0.66rem;
+    width: 50px;
+    height: 20px;
+    font-size: 0.76rem;
+  }
+
+  .dual-picked-icon {
+    width: 13px;
+    height: 13px;
   }
 
   .attack-btn {
-    font-size: 0.7rem;
+    font-size: 0.82rem;
+  }
+
+  .type-pill {
+    font-size: 0.82rem;
+  }
+
+  .type-icon-img,
+  .attack-icon-img {
+    width: 14px;
+    height: 14px;
   }
 }
 </style>
