@@ -1,6 +1,6 @@
-# Vue 3 HelloWorld
+# 洛克王国：世界 属性克制表
 
-A minimal Vue 3 + Vite HelloWorld project.
+基于单属性克制关系，增加单属性攻击双属性的克制关系
 
 ## Run
 
@@ -15,3 +15,7 @@ npm run dev
 npm run build
 npm run preview
 ```
+
+## AI
+
+完全由AI生成
