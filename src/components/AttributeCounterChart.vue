@@ -62,6 +62,7 @@ const matchup = {
 }
 
 const selectedDefenders = ref([])
+const selectedAttackers = ref([])
 
 const selectedDefenderA = computed(() => selectedDefenders.value[0] ?? null)
 const selectedDefenderB = computed(() => selectedDefenders.value[1] ?? null)
@@ -94,8 +95,34 @@ const toggleDefender = (typeKey) => {
   selectedDefenders.value = [current[1], typeKey]
 }
 
+const toggleAttacker = (typeKey) => {
+  const current = selectedAttackers.value
+  const existingIndex = current.indexOf(typeKey)
+
+  if (existingIndex !== -1) {
+    selectedAttackers.value = current.filter((key) => key !== typeKey)
+    return
+  }
+
+  if (current.length < 2) {
+    selectedAttackers.value = [...current, typeKey]
+    return
+  }
+
+  selectedAttackers.value = [current[1], typeKey]
+}
+
 const resetSelectedDefenders = () => {
   selectedDefenders.value = []
+  selectedAttackers.value = []
+}
+
+const isMappedIntersection = (attackerKey, defenderKey) => {
+  if (selectedAttackers.value.length === 0 || selectedDefenders.value.length === 0) {
+    return false
+  }
+
+  return selectedDefenders.value.includes(attackerKey) && selectedAttackers.value.includes(defenderKey)
 }
 
 const getEffectValue = (attackerKey, defenderKey) => {
@@ -154,7 +181,7 @@ const matrix = computed(() => {
       <button
         type="button"
         class="reset-btn"
-        :disabled="selectedDefenders.length === 0"
+        :disabled="selectedDefenders.length === 0 && selectedAttackers.length === 0"
         @click="resetSelectedDefenders"
       >
         重置
@@ -203,16 +230,14 @@ const matrix = computed(() => {
             <tr
               v-for="row in matrix"
               :key="row.attacker.key"
-              :class="{
-                recommended:
-                  selectedDefenders.length === 2 && selectedDefenders.includes(row.attacker.key),
-              }"
             >
               <th class="row-head">
                 <button
                   type="button"
                   class="attack-btn"
+                  :class="{ picked: selectedAttackers.includes(row.attacker.key) }"
                   :style="{ '--attack-color': row.attacker.color }"
+                  @click="toggleAttacker(row.attacker.key)"
                 >
                   <span class="icon">
                     <img class="attack-icon-img" :src="row.attacker.iconSrc" :alt="row.attacker.name" />
@@ -228,6 +253,9 @@ const matrix = computed(() => {
               <td
                 v-for="(cell, cellIndex) in row.cells"
                 :key="`${row.attacker.key}-${types[cellIndex].key}`"
+                :class="{
+                  'mapped-link-cell': isMappedIntersection(row.attacker.key, types[cellIndex].key),
+                }"
               >
                 <span
                   v-if="cell.state !== 'normal'"
@@ -238,6 +266,11 @@ const matrix = computed(() => {
                   <template v-else-if="cell.state === 'weak'"></template>
                   <template v-else>×</template>
                 </span>
+                <i
+                  v-if="isMappedIntersection(row.attacker.key, types[cellIndex].key)"
+                  class="mapped-link-dot"
+                  aria-hidden="true"
+                ></i>
               </td>
             </tr>
           </tbody>
@@ -331,6 +364,7 @@ td {
   border: 1px solid #cdc5b6;
   border-radius: 11px;
   text-align: center;
+  position: relative;
   overflow: hidden;
 }
 
@@ -505,18 +539,18 @@ tbody tr.active td {
   background: #ebe4d5;
 }
 
-tbody tr.recommended td {
-  background: #d5efc8;
-  border-color: #9fca87;
-}
-
-tbody tr.recommended .dual-col {
-  background: #c3e8af;
-  border-color: #88bb6d;
-}
-
-tbody tr.recommended .attack-btn {
-  box-shadow: inset 5px 0 0 #74b55a;
+.mapped-link-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  margin-top: -5.5px;
+  margin-left: -5.5px;
+  border-radius: 50%;
+  background: #f08a24;
+  box-shadow: 0 0 0 1px rgba(110, 63, 17, 0.24), 0 0 8px rgba(240, 138, 36, 0.55);
+  z-index: 2;
 }
 
 .result {
