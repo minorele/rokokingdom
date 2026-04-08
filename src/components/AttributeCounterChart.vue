@@ -234,8 +234,8 @@ const matrix = computed(() => {
                   class="result"
                   :class="cell.state"
                 >
-                  <template v-if="cell.state === 'strong'">↑</template>
-                  <template v-else-if="cell.state === 'weak'">↓</template>
+                  <template v-if="cell.state === 'strong'"></template>
+                  <template v-else-if="cell.state === 'weak'"></template>
                   <template v-else>×</template>
                 </span>
               </td>
@@ -548,6 +548,20 @@ tbody tr.recommended .attack-btn {
 
 .result.weak {
   background: #d96a78;
+}
+
+td:not(.dual-col) > .result.weak {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 10px;
+}
+
+td:not(.dual-col) > .result.strong {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 10px;
 }
 
 .result.immune {
