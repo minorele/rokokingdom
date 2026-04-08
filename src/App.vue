@@ -1,7 +1,7 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+import AttributeCounterChart from './components/AttributeCounterChart.vue'
 </script>
 
 <template>
-  <HelloWorld />
+  <AttributeCounterChart />
 </template>
